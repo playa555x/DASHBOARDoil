@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCNDA Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            float: right;
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-container h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .create-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .create-form .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .create-form button {
+            padding: 12px 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .documents-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .documents-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .documents-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .documents-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .btn-view {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-copy {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .share-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .share-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+        }
+
+        .email-btn {
+            background: #0078D4;
+            color: white;
+        }
+
+        .copy-btn {
+            background: #7f8c8d;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        #app {
+            display: none;
+        }
+
+        #app.active {
+            display: block;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="login-section" class="login-container">
+        <h2>🔐 Admin Login</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Benutzername</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>Passwort</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn">Anmelden</button>
+            <div id="login-error" class="error-message"></div>
+        </form>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <button class="logout-btn" onclick="logout()">Abmelden</button>
+                <h1>📊 NCNDA Admin Panel</h1>
+                <p>Verwalten Sie Dokumente und IP-Zugriffe</p>
+            </div>
+
+            <!-- Create Document -->
+            <div class="card">
+                <h3>➕ Neues Dokument erstellen</h3>
+                <div class="create-form">
+                    <div class="form-group">
+                        <label>Passwort festlegen (min. 6 Zeichen)</label>
+                        <input type="text" id="new-password" placeholder="z.B. ABC123XY">
+                    </div>
+                    <button onclick="createDocument()">Dokument erstellen</button>
+                </div>
+                <div id="create-result" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- Documents List -->
+            <div class="card">
+                <h3>📄 Alle Dokumente</h3>
+                <table class="documents-table" id="documents-table">
+                    <thead>
+                        <tr>
+                            <th>Dokument ID</th>
+                            <th>Passwort</th>
+                            <th>IP-Adressen</th>
+                            <th>Erstellt am</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documents-body">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px;">Lade Dokumente...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Details Modal -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Dokument Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let authToken = localStorage.getItem('admin_token');
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('admin_token', authToken);
+                    window.location.href = '/dashboard.html';
+                } else {
+                    const errorDiv = document.getElementById('login-error');
+                    errorDiv.textContent = data.error || 'Login fehlgeschlagen';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                alert('Verbindungsfehler: ' + error.message);
+            }
+        });
+
+        // Check if already logged in - redirect to dashboard
+        if (authToken) {
+            window.location.href = '/dashboard.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            location.reload();
+        }
+
+        // Create Document
+        async function createDocument() {
+            const password = document.getElementById('new-password').value.trim();
+
+            if (!password || password.length < 6) {
+                alert('Passwort muss mindestens 6 Zeichen lang sein');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/document/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const resultDiv = document.getElementById('create-result');
+                    resultDiv.innerHTML = `
+                        <div style="background: #d4edda; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="color: #155724; margin-bottom: 15px;">✅ Dokument erfolgreich erstellt!</h4>
+                            <p style="margin-bottom: 10px;"><strong>Dokument ID:</strong> ${data.documentId}</p>
+                            <p style="margin-bottom: 10px;"><strong>Passwort:</strong> ${password.toUpperCase()}</p>
+                            <p style="margin-bottom: 15px;"><strong>Share-Link:</strong></p>
+                            <input type="text" value="${data.shareUrl}" id="share-url" readonly
+                                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                            <div class="share-links">
+                                <button class="share-btn whatsapp-btn" onclick="shareWhatsApp('${data.shareUrl}', '${password.toUpperCase()}')">
+                                    📱 WhatsApp
+                                </button>
+                                <button class="share-btn email-btn" onclick="shareEmail('${data.shareUrl}', '${password.toUpperCase()}')">
+                                    ✉️ E-Mail
+                                </button>
+                                <button class="share-btn copy-btn" onclick="copyShareLink('${data.shareUrl}')">
+                                    📋 Link kopieren
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('new-password').value = '';
+                    loadDocuments();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Verbindungsfehler: ' + error.message);
+            }
+        }
+
+        // Load Documents
+        async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/documents`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const documents = await response.json();
+
+                const tbody = document.getElementById('documents-body');
+
+                if (documents.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">Keine Dokumente vorhanden</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = documents.map(doc => {
+                    let badge = '';
+                    if (doc.ip_count === 0) {
+                        badge = '<span class="badge badge-warning">Noch nicht geöffnet</span>';
+                    } else if (doc.ip_count >= doc.max_ips) {
+                        badge = '<span class="badge badge-danger">Limit erreicht</span>';
+                    } else {
+                        badge = '<span class="badge badge-success">Aktiv</span>';
+                    }
+
+                    return `
+                        <tr>
+                            <td><code>${doc.document_id}</code></td>
+                            <td><strong>${doc.password}</strong></td>
+                            <td>${doc.ip_count} / ${doc.max_ips} ${badge}</td>
+                            <td>${new Date(doc.created_at).toLocaleString('de-DE')}</td>
+                            <td>
+                                <button class="action-btn btn-view" onclick="viewDocument('${doc.document_id}')">Details</button>
+                                <button class="action-btn btn-copy" onclick="copyShareLink('${API_URL}/document/${doc.document_id}')">Link</button>
+                                <button class="action-btn btn-delete" onclick="deleteDocument('${doc.document_id}')">Löschen</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                alert('Fehler beim Laden: ' + error.message);
+            }
+        }
+
+        // View Document Details
+        async function viewDocument(documentId) {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/document/${documentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                const modalBody = document.getElementById('modal-body');
+                modalBody.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4>Dokument Information</h4>
+                        <p><strong>ID:</strong> ${data.document.document_id}</p>
+                        <p><strong>Passwort:</strong> ${data.document.password}</p>
+                        <p><strong>Max IPs:</strong> ${data.document.max_ips}</p>
+                        <p><strong>Erstellt:</strong> ${new Date(data.document.created_at).toLocaleString('de-DE')}</p>
+                    </div>
+
+                    <h4>Registrierte IP-Adressen (${data.ipCount})</h4>
+                    ${data.ips.length === 0 ? '<p>Noch keine IPs registriert</p>' : `
+                        <table style="width: 100%; margin-top: 10px;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 8px; text-align: left;">IP-Adresse</th>
+                                    <th style="padding: 8px; text-align: left;">Zugegriffen am</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.ips.map(ip => `
+                                    <tr>
+                                        <td style="padding: 8px;"><code>${ip.ip_address}</code></td>
+                                        <td style="padding: 8px;">${new Date(ip.accessed_at).toLocaleString('de-DE')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                `;
+
+                document.getElementById('details-modal').classList.add('active');
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('details-modal').classList.remove('active');
+        }
+
+        // Delete Document
+        async function deleteDocument(documentId) {
+            if (!confirm('Möchten Sie dieses Dokument wirklich löschen?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/document/${documentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Dokument gelöscht');
+                    loadDocuments();
+                } else {
+                    alert('Fehler beim Löschen');
+                }
+            } catch (error) {
+                alert('Verbindungsfehler: ' + error.message);
+            }
+        }
+
+        // Share Functions
+        function shareWhatsApp(url, password) {
+            const message = encodeURIComponent(`NCNDA Dokument\n\nLink: ${url}\nPasswort: ${password}\n\nBitte öffnen Sie das Dokument und geben Sie das Passwort ein.`);
+            window.open(`https://wa.me/?text=${message}`, '_blank');
+        }
+
+        function shareEmail(url, password) {
+            const subject = encodeURIComponent('NCNDA Dokument - Zugang');
+            const body = encodeURIComponent(`Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie Zugriff auf das NCNDA Dokument:\n\nLink: ${url}\nPasswort: ${password}\n\nBitte öffnen Sie das Dokument und geben Sie das Passwort ein.\n\nMit freundlichen Grüßen`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        function copyShareLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link in Zwischenablage kopiert!');
+            });
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('app').classList.contains('active')) {
+                loadDocuments();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Manager - NCNDA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: white; color: #667eea; }
+        .btn-back { background: rgba(255,255,255,0.2); color: white; }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body { padding: 25px; }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .template-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .template-card.inactive {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .template-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .template-desc {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .template-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #95a5a6;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-preview { background: #3498db; color: white; }
+        .btn-edit { background: #f39c12; color: white; }
+        .btn-toggle { background: #95a5a6; color: white; }
+        .btn-delete { background: #e74c3c; color: white; }
+
+        .upload-zone {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 60px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #667eea;
+            background: #e8eaff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📄 NCNDA Template Manager</h1>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn btn-primary" onclick="openUploadModal()">+ Template hochladen</button>
+                <button class="btn btn-back" onclick="location.href='/dashboard.html'">← Zurück</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h3>Ihre Templates</h3>
+                <span id="template-count">0 Templates</span>
+            </div>
+            <div class="card-body">
+                <div class="template-grid" id="templates-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal" onclick="if(event.target === this) closeUploadModal()">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Template hochladen</h3>
+                <button onclick="closeUploadModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #95a5a6; line-height: 1;">&times;</button>
+            </div>
+
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                <div style="font-size: 48px; margin-bottom: 15px;">📁</div>
+                <h4 style="margin-bottom: 10px;">HTML-Datei hierher ziehen</h4>
+                <p style="color: #7f8c8d;">oder klicken zum Auswählen</p>
+                <input type="file" id="file-input" accept=".html,.htm" onchange="handleFileSelect(event)">
+            </div>
+
+            <form id="template-form">
+                <div class="form-group">
+                    <label>Template Name *</label>
+                    <input type="text" id="template-name" required placeholder="z.B. NCNDA Standard">
+                </div>
+
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea id="template-desc" rows="3" placeholder="Kurze Beschreibung des Templates"></textarea>
+                </div>
+
+                <div class="form-group" style="display: none;">
+                    <label>HTML Inhalt</label>
+                    <textarea id="template-html" rows="10" style="font-family: monospace; font-size: 12px;"></textarea>
+                </div>
+
+                <div id="file-info" style="margin-bottom: 20px; display: none;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
+                        <strong>✅ Datei geladen:</strong>
+                        <p id="file-name" style="margin-top: 5px; color: #2e7d32;"></p>
+                        <p id="file-size" style="margin-top: 5px; color: #2e7d32;"></p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 2;">Template speichern</button>
+                    <button type="button" class="btn btn-back" style="flex: 1;" onclick="closeUploadModal()">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal" onclick="if(event.target === this) closePreviewModal()">
+        <div class="modal-content" style="max-width: 90%; max-height: 90vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Template Vorschau</h3>
+                <button onclick="closePreviewModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #95a5a6; line-height: 1;">&times;</button>
+            </div>
+            <iframe id="preview-frame" style="width: 100%; height: 70vh; border: 1px solid #ddd; border-radius: 6px;"></iframe>
+            <button class="btn btn-back" style="margin-top: 20px; width: 100%;" onclick="closePreviewModal()">Schließen</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let authToken = localStorage.getItem('admin_token');
+
+        if (!authToken) {
+            window.location.href = '/admin.html';
+        }
+
+        let selectedHtmlContent = '';
+
+        // Load templates
+        async function loadTemplates() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/templates`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const templates = await response.json();
+
+                // Check if templates is actually an array
+                if (!Array.isArray(templates)) {
+                    console.error('Templates is not an array:', templates);
+                    const grid = document.getElementById('templates-grid');
+                    grid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #e74c3c;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+                            <h3>Fehler beim Laden</h3>
+                            <p style="margin-top: 10px;">Bitte überprüfen Sie Ihre Authentifizierung</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                document.getElementById('template-count').textContent = `${templates.length} Template${templates.length !== 1 ? 's' : ''}`;
+
+                const grid = document.getElementById('templates-grid');
+
+                if (templates.length === 0) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #95a5a6;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">📄</div>
+                            <h3>Keine Templates vorhanden</h3>
+                            <p style="margin-top: 10px;">Laden Sie Ihr erstes NCNDA-Template hoch</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = templates.map(t => `
+                    <div class="template-card ${t.is_active ? '' : 'inactive'}">
+                        <div class="template-header">
+                            <div>
+                                <div class="template-name">${t.name}</div>
+                                <span class="status-badge status-${t.is_active ? 'active' : 'inactive'}">
+                                    ${t.is_active ? 'Aktiv' : 'Inaktiv'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="template-desc">${t.description || 'Keine Beschreibung'}</div>
+
+                        <div class="template-stats">
+                            <span>📝 ${t.usage_count}x verwendet</span>
+                            <span>📅 ${new Date(t.created_at).toLocaleDateString('de-DE')}</span>
+                        </div>
+
+                        <div class="template-actions">
+                            <button class="btn-sm btn-preview" onclick="previewTemplate(${t.id})">👁️ Vorschau</button>
+                            <button class="btn-sm btn-toggle" onclick="toggleTemplate(${t.id})">
+                                ${t.is_active ? '⏸️ Deaktivieren' : '▶️ Aktivieren'}
+                            </button>
+                            <button class="btn-sm btn-delete" onclick="deleteTemplate(${t.id}, ${t.usage_count})" title="${t.usage_count > 0 ? 'Template wird von ' + t.usage_count + ' Dokument(en) verwendet' : 'Template löschen'}">
+                                🗑️ Löschen
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        // File handling
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedHtmlContent = e.target.result;
+                document.getElementById('template-html').value = selectedHtmlContent;
+
+                document.getElementById('file-info').style.display = 'block';
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-size').textContent = `Größe: ${(file.size / 1024).toFixed(2)} KB`;
+            };
+            reader.readAsText(file);
+        }
+
+        // Drag & Drop
+        const uploadZone = document.getElementById('upload-zone');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.html') || file.name.endsWith('.htm'))) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('file-input').files = dataTransfer.files;
+                handleFileSelect({ target: { files: [file] } });
+            } else {
+                alert('Bitte nur HTML-Dateien hochladen!');
+            }
+        });
+
+        // Upload form
+        document.getElementById('template-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('template-name').value;
+            const description = document.getElementById('template-desc').value;
+            const htmlContent = selectedHtmlContent;
+
+            if (!htmlContent) {
+                alert('Bitte wählen Sie eine HTML-Datei aus!');
+                return;
+            }
+
+            const response = await fetch(`${API_URL}/api/admin/template/upload`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ name, description, htmlContent })
+            });
+
+            if (response.ok) {
+                alert('Template erfolgreich hochgeladen!');
+                closeUploadModal();
+                loadTemplates();
+            } else {
+                alert('Fehler beim Hochladen!');
+            }
+        });
+
+        // Preview template
+        async function previewTemplate(id) {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/template/${id}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const template = await response.json();
+                const iframe = document.getElementById('preview-frame');
+                iframe.srcdoc = template.html_content;
+
+                document.getElementById('preview-modal').classList.add('active');
+            } catch (error) {
+                alert('Fehler beim Laden der Vorschau');
+            }
+        }
+
+        // Toggle template
+        async function toggleTemplate(id) {
+            const response = await fetch(`${API_URL}/api/admin/template/${id}/toggle`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+
+            if (response.ok) {
+                loadTemplates();
+            }
+        }
+
+        // Delete template
+        async function deleteTemplate(id, usageCount) {
+            if (usageCount > 0) {
+                if (!confirm(`⚠️ WARNUNG: Dieses Template wird von ${usageCount} Dokument(en) verwendet!\n\nMöchten Sie es trotzdem löschen? Die Dokumente werden dann kein Template mehr haben.`)) {
+                    return;
+                }
+            } else {
+                if (!confirm('Template wirklich löschen?')) return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/template/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('✅ Template erfolgreich gelöscht');
+                    loadTemplates();
+                } else {
+                    alert('❌ Fehler: ' + (data.error || 'Template konnte nicht gelöscht werden'));
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('❌ Fehler beim Löschen des Templates');
+            }
+        }
+
+        function openUploadModal() {
+            document.getElementById('upload-modal').classList.add('active');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('upload-modal').classList.remove('active');
+            document.getElementById('template-form').reset();
+            document.getElementById('file-info').style.display = 'none';
+            selectedHtmlContent = '';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.remove('active');
+        }
+
+        loadTemplates();
+        setInterval(loadTemplates, 30000);
+    </script>
+</body>
+</html>

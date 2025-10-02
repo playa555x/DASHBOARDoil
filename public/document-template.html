@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCNDA Document - Protected</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .password-container h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .password-container p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: monospace;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .document-content {
+            display: none;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .document-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Protection -->
+    <div id="password-section" class="password-container">
+        <div style="text-align: center; font-size: 48px; margin-bottom: 20px;">🔐</div>
+        <h2>Dokument geschützt</h2>
+        <p>Dieses Dokument ist passwortgeschützt. Bitte geben Sie das Passwort ein, das Sie vom Absender erhalten haben.</p>
+
+        <form id="password-form">
+            <div class="form-group">
+                <label>Passwort eingeben:</label>
+                <input type="text" id="password-input" placeholder="Passwort" required>
+            </div>
+            <button type="submit" class="submit-btn">Zugang gewähren</button>
+        </form>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <div class="info-box">
+            ℹ️ Aus Sicherheitsgründen kann dieses Dokument nur von maximal 3 verschiedenen IP-Adressen geöffnet werden.
+        </div>
+    </div>
+
+    <!-- Document Content (will be loaded from your original NCNDA file) -->
+    <div id="document-content" class="document-content">
+        <h1>✅ Zugriff gewährt</h1>
+        <p>Das Dokument wird geladen...</p>
+        <!-- This is where you would load your NCNDA document content -->
+    </div>
+
+    <script>
+        // Get document ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const documentId = pathParts[pathParts.length - 1] || 'DEMO';
+        const API_URL = window.location.origin;
+
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('password-input').value.trim();
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/api/document/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documentId: documentId,
+                        password: password,
+                        userAgent: navigator.userAgent
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = data.message;
+                    successDiv.style.display = 'block';
+
+                    // Store access token
+                    localStorage.setItem(`doc_access_${documentId}`, 'granted');
+
+                    // Show success and redirect/load document
+                    setTimeout(() => {
+                        document.getElementById('password-section').style.display = 'none';
+                        document.getElementById('document-content').classList.add('active');
+
+                        // Load actual NCNDA document content
+                        loadDocumentContent();
+                    }, 1500);
+                } else {
+                    errorDiv.textContent = data.error || 'Zugriff verweigert';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Verbindungsfehler. Bitte versuchen Sie es später erneut.';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        function loadDocumentContent() {
+            // Here you would load your actual NCNDA document
+            // For now, we'll show a placeholder
+            document.getElementById('document-content').innerHTML = `
+                <h1>NCNDA Dokument</h1>
+                <p>✅ Zugriff erfolgreich gewährt!</p>
+                <p>Hier würde Ihr NCNDA-Dokument angezeigt werden.</p>
+                <p><strong>Dokument ID:</strong> ${documentId}</p>
+
+                <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+                    <h3>Nächste Schritte:</h3>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li>Kopieren Sie den Inhalt Ihrer NCNDA-Datei hierher</li>
+                        <li>Die IP-Adresse wurde automatisch registriert</li>
+                        <li>Das Dokument kann von max. 3 IPs geöffnet werden</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        // Check if already accessed
+        if (localStorage.getItem(`doc_access_${documentId}`) === 'granted') {
+            document.getElementById('password-section').style.display = 'none';
+            document.getElementById('document-content').classList.add('active');
+            loadDocumentContent();
+        }
+    </script>
+</body>
+</html>
