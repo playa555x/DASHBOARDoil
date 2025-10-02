@@ -213,18 +213,261 @@
             document.getElementById('document-content').innerHTML = `
                 <h1>NCNDA Dokument</h1>
                 <p>✅ Zugriff erfolgreich gewährt!</p>
-                <p>Hier würde Ihr NCNDA-Dokument angezeigt werden.</p>
                 <p><strong>Dokument ID:</strong> ${documentId}</p>
 
-                <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
-                    <h3>Nächste Schritte:</h3>
-                    <ol style="margin-left: 20px; margin-top: 10px;">
-                        <li>Kopieren Sie den Inhalt Ihrer NCNDA-Datei hierher</li>
-                        <li>Die IP-Adresse wurde automatisch registriert</li>
-                        <li>Das Dokument kann von max. 3 IPs geöffnet werden</li>
-                    </ol>
+                <div style="margin: 30px 0; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+                    <h3>📄 Ihr NCNDA-Dokument</h3>
+                    <p>Hier würde der Inhalt Ihres NCNDA-Vertrags erscheinen...</p>
                 </div>
+
+                <!-- ID Document Form -->
+                <div style="margin-top: 40px; padding: 30px; background: #f5f5f5; border-radius: 8px; border: 2px solid #2196F3;">
+                    <h2 style="color: #1976d2; margin-bottom: 10px;">🆔 Ausweisdaten & ICC-konforme Unternehmensangaben</h2>
+                    <p style="color: #666; margin-bottom: 25px;">Bitte füllen Sie alle erforderlichen Felder aus und laden Sie Ihren Ausweis hoch.</p>
+
+                    <form id="id-document-form">
+                        <!-- Personal ID Data -->
+                        <h3 style="color: #333; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #2196F3; padding-bottom: 5px;">👤 Personalausweis / Reisepass</h3>
+
+                        <div class="form-group">
+                            <label>Vollständiger Name *</label>
+                            <input type="text" id="full-name" required placeholder="Max Mustermann">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Geburtsdatum *</label>
+                                <input type="date" id="date-of-birth" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Geburtsort</label>
+                                <input type="text" id="place-of-birth" placeholder="Berlin, Deutschland">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Nationalität *</label>
+                                <input type="text" id="nationality" required placeholder="Deutsch">
+                            </div>
+                            <div class="form-group">
+                                <label>Ausweistyp *</label>
+                                <select id="id-type" required>
+                                    <option value="">-- Bitte wählen --</option>
+                                    <option value="Personalausweis">Personalausweis</option>
+                                    <option value="Reisepass">Reisepass</option>
+                                    <option value="Aufenthaltstitel">Aufenthaltstitel</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ausweisnummer *</label>
+                            <input type="text" id="id-number" required placeholder="L01X00T47">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Ausstellungsdatum</label>
+                                <input type="date" id="issue-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Ablaufdatum *</label>
+                                <input type="date" id="expiry-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Ausstellende Behörde</label>
+                                <input type="text" id="issuing-authority" placeholder="Bundesdruckerei">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <textarea id="personal-address" rows="2" placeholder="Musterstraße 123, 10115 Berlin"></textarea>
+                        </div>
+
+                        <!-- ICC Company Data -->
+                        <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #FF9800; padding-bottom: 5px;">🏢 ICC-konforme Unternehmensangaben</h3>
+
+                        <div class="form-group">
+                            <label>Firmenname *</label>
+                            <input type="text" id="company-name" required placeholder="Musterfirma GmbH">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Position / Titel *</label>
+                                <input type="text" id="company-position" required placeholder="Geschäftsführer">
+                            </div>
+                            <div class="form-group">
+                                <label>Handelsregisternummer</label>
+                                <input type="text" id="company-registration-number" placeholder="HRB 12345">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Steuernummer / USt-IdNr.</label>
+                                <input type="text" id="tax-id-vat" placeholder="DE123456789">
+                            </div>
+                            <div class="form-group">
+                                <label>Land *</label>
+                                <input type="text" id="company-country" required placeholder="Deutschland">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Firmenadresse *</label>
+                            <textarea id="company-address" rows="2" required placeholder="Firmenstraße 456, 20095 Hamburg"></textarea>
+                        </div>
+
+                        <!-- Contact Info -->
+                        <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #4CAF50; padding-bottom: 5px;">📞 Kontaktdaten</h3>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Telefonnummer *</label>
+                                <input type="tel" id="phone-number" required placeholder="+49 30 12345678">
+                            </div>
+                            <div class="form-group">
+                                <label>E-Mail *</label>
+                                <input type="email" id="email-address" required placeholder="max@musterfirma.de">
+                            </div>
+                        </div>
+
+                        <!-- ID Image Uploads -->
+                        <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #9C27B0; padding-bottom: 5px;">📷 Ausweis-Fotos hochladen</h3>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Vorderseite *</label>
+                                <input type="file" class="id-image-front" accept="image/*" required style="padding: 10px;">
+                                <small style="color: #666;">Max. 5MB - JPG, PNG</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Rückseite</label>
+                                <input type="file" class="id-image-back" accept="image/*" style="padding: 10px;">
+                                <small style="color: #666;">Nur bei Personalausweis</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Container for multiple persons -->
+                    <div id="persons-container"></div>
+
+                    <!-- Button to add more persons -->
+                    <div style="text-align: center; margin: 30px 0;">
+                        <button type="button" onclick="addPersonForm()" style="padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                            ➕ Weitere Person hinzufügen
+                        </button>
+                    </div>
+
+                    <!-- Signature Canvas -->
+                    <div style="margin-top: 40px; padding: 30px; background: white; border-radius: 8px; border: 2px dashed #9C27B0;">
+                        <h3 style="color: #333; margin-bottom: 15px;">✍️ Digitale Unterschrift</h3>
+                        <p style="color: #666; margin-bottom: 15px;">Bitte unterschreiben Sie hier mit der Maus oder dem Finger (auf Touchscreens):</p>
+
+                        <canvas id="signature-canvas" width="800" height="200" style="border: 2px solid #ddd; border-radius: 6px; cursor: crosshair; width: 100%; max-width: 800px; height: 200px; background: white;"></canvas>
+
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button type="button" onclick="clearSignature()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                🗑️ Löschen
+                            </button>
+                            <small style="color: #666; line-height: 40px;">* Unterschrift ist erforderlich</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <button type="submit" class="submit-btn">
+                            ✅ Alle Daten übermitteln
+                        </button>
+                    </div>
+                </form>
+
+                <div id="id-submit-message" style="margin-top: 20px; padding: 15px; border-radius: 6px; display: none;"></div>
+            </div>
             `;
+
+            // Add form submit handler
+            document.getElementById('id-document-form').addEventListener('submit', submitIDDocument);
+        }
+
+        async function submitIDDocument(e) {
+            e.preventDefault();
+
+            const messageDiv = document.getElementById('id-submit-message');
+            messageDiv.style.display = 'none';
+
+            // Get form data
+            const formData = {
+                documentId: documentId,
+                fullName: document.getElementById('full-name').value,
+                dateOfBirth: document.getElementById('date-of-birth').value,
+                placeOfBirth: document.getElementById('place-of-birth').value,
+                nationality: document.getElementById('nationality').value,
+                idNumber: document.getElementById('id-number').value,
+                idType: document.getElementById('id-type').value,
+                issueDate: document.getElementById('issue-date').value,
+                expiryDate: document.getElementById('expiry-date').value,
+                issuingAuthority: document.getElementById('issuing-authority').value,
+                personalAddress: document.getElementById('personal-address').value,
+                companyName: document.getElementById('company-name').value,
+                companyPosition: document.getElementById('company-position').value,
+                companyRegistrationNumber: document.getElementById('company-registration-number').value,
+                taxIdVat: document.getElementById('tax-id-vat').value,
+                companyAddress: document.getElementById('company-address').value,
+                companyCountry: document.getElementById('company-country').value,
+                phoneNumber: document.getElementById('phone-number').value,
+                emailAddress: document.getElementById('email-address').value
+            };
+
+            // Handle image uploads (convert to base64)
+            const frontImage = document.getElementById('id-image-front').files[0];
+            const backImage = document.getElementById('id-image-back').files[0];
+
+            if (frontImage) {
+                formData.idImageFront = await fileToBase64(frontImage);
+            }
+            if (backImage) {
+                formData.idImageBack = await fileToBase64(backImage);
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/document/submit-id`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.style.background = '#d4edda';
+                    messageDiv.style.color = '#155724';
+                    messageDiv.textContent = '✅ ' + data.message;
+                    messageDiv.style.display = 'block';
+                    document.getElementById('id-document-form').reset();
+                } else {
+                    messageDiv.style.background = '#f8d7da';
+                    messageDiv.style.color = '#721c24';
+                    messageDiv.textContent = '❌ ' + (data.error || 'Fehler beim Übermitteln');
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.style.background = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.textContent = '❌ Verbindungsfehler';
+                messageDiv.style.display = 'block';
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         // Check if already accessed

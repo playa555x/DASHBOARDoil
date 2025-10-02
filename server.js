@@ -100,6 +100,45 @@ db.exec(`
     shared_by TEXT,
     FOREIGN KEY (document_id) REFERENCES documents(document_id)
   );
+
+  CREATE TABLE IF NOT EXISTS id_documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_id TEXT NOT NULL,
+
+    -- Personal ID/Passport Data
+    full_name TEXT NOT NULL,
+    date_of_birth TEXT,
+    place_of_birth TEXT,
+    nationality TEXT,
+    id_number TEXT,
+    id_type TEXT,
+    issue_date TEXT,
+    expiry_date TEXT,
+    issuing_authority TEXT,
+    personal_address TEXT,
+
+    -- ICC-compliant Company Data
+    company_name TEXT,
+    company_position TEXT,
+    company_registration_number TEXT,
+    tax_id_vat TEXT,
+    company_address TEXT,
+    company_country TEXT,
+
+    -- Additional Info
+    phone_number TEXT,
+    email_address TEXT,
+
+    -- ID Document Image (base64 or file path)
+    id_image_front TEXT,
+    id_image_back TEXT,
+
+    -- Metadata
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ip_address TEXT,
+
+    FOREIGN KEY (document_id) REFERENCES documents(document_id)
+  );
 `);
 
 // Migrations for existing databases
@@ -403,6 +442,128 @@ app.post('/api/document/sign', (req, res) => {
     res.json({ success: true, message: 'Document signed successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to save signature' });
+  }
+});
+
+// Submit ID Document Data
+app.post('/api/document/submit-id', (req, res) => {
+  const {
+    documentId,
+    // Personal Data
+    fullName, dateOfBirth, placeOfBirth, nationality,
+    idNumber, idType, issueDate, expiryDate, issuingAuthority, personalAddress,
+    // Company Data
+    companyName, companyPosition, companyRegistrationNumber, taxIdVat, companyAddress, companyCountry,
+    // Additional
+    phoneNumber, emailAddress,
+    // Images
+    idImageFront, idImageBack
+  } = req.body;
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || req.ip;
+
+  try {
+    // Insert ID document data
+    db.prepare(`
+      INSERT INTO id_documents (
+        document_id, full_name, date_of_birth, place_of_birth, nationality,
+        id_number, id_type, issue_date, expiry_date, issuing_authority, personal_address,
+        company_name, company_position, company_registration_number, tax_id_vat,
+        company_address, company_country,
+        phone_number, email_address,
+        id_image_front, id_image_back, ip_address
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      documentId, fullName, dateOfBirth, placeOfBirth, nationality,
+      idNumber, idType, issueDate, expiryDate, issuingAuthority, personalAddress,
+      companyName, companyPosition, companyRegistrationNumber, taxIdVat,
+      companyAddress, companyCountry,
+      phoneNumber, emailAddress,
+      idImageFront, idImageBack, ip
+    );
+
+    console.log(`✅ ID Document submitted for ${documentId} by ${fullName}`);
+
+    res.json({ success: true, message: 'ID document data submitted successfully' });
+  } catch (error) {
+    console.error('Error saving ID document:', error);
+    res.status(500).json({ error: 'Failed to save ID document data' });
+  }
+});
+
+// Get ID documents for a document
+app.get('/api/admin/document/:documentId/id-documents', authenticateToken, (req, res) => {
+  const { documentId } = req.params;
+
+  try {
+    const idDocs = db.prepare(`
+      SELECT * FROM id_documents
+      WHERE document_id = ?
+      ORDER BY submitted_at DESC
+    `).all(documentId);
+
+    res.json(idDocs);
+  } catch (error) {
+    console.error('Error fetching ID documents:', error);
+    res.status(500).json({ error: 'Failed to fetch ID documents' });
+  }
+});
+
+// Submit multiple ID documents + signature
+app.post('/api/document/submit-id-multiple', (req, res) => {
+  const { documentId, persons, signature } = req.body;
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress || req.ip;
+
+  if (!persons || persons.length < 2) {
+    return res.status(400).json({ error: 'Mindestens 2 Personen erforderlich' });
+  }
+
+  if (!signature) {
+    return res.status(400).json({ error: 'Unterschrift erforderlich' });
+  }
+
+  try {
+    // Insert all persons
+    const insertStmt = db.prepare(`
+      INSERT INTO id_documents (
+        document_id, full_name, date_of_birth, place_of_birth, nationality,
+        id_number, id_type, issue_date, expiry_date, issuing_authority, personal_address,
+        company_name, company_position, company_registration_number, tax_id_vat,
+        company_address, company_country,
+        phone_number, email_address,
+        id_image_front, id_image_back, ip_address
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    persons.forEach(person => {
+      insertStmt.run(
+        documentId,
+        person.fullName, person.dateOfBirth, person.placeOfBirth, person.nationality,
+        person.idNumber, person.idType, person.issueDate, person.expiryDate,
+        person.issuingAuthority, person.personalAddress,
+        person.companyName, person.companyPosition, person.companyRegistrationNumber,
+        person.taxIdVat, person.companyAddress, person.companyCountry,
+        person.phoneNumber, person.emailAddress,
+        person.idImageFront || null, person.idImageBack || null, ip
+      );
+    });
+
+    // Save signature
+    db.prepare(`
+      INSERT INTO signatures (document_id, partner_name, signature_data, ip_address)
+      VALUES (?, ?, ?, ?)
+    `).run(documentId, persons[0].fullName, signature, ip);
+
+    console.log(`✅ ${persons.length} ID documents + signature submitted for ${documentId}`);
+
+    res.json({
+      success: true,
+      message: `${persons.length} Personen erfolgreich gespeichert!`,
+      personsCount: persons.length
+    });
+  } catch (error) {
+    console.error('Error saving ID documents:', error);
+    res.status(500).json({ error: 'Fehler beim Speichern', details: error.message });
   }
 });
 
