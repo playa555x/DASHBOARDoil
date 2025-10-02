@@ -44,33 +44,7 @@ db.exec(`
   );
 `)
 
-// Add template_id column if it doesn't exist (migration for existing databases)
-try {
-  db.exec('ALTER TABLE documents ADD COLUMN template_id INTEGER');
-  console.log('✅ Migration: Added template_id column to documents table');
-} catch (err) {
-  // Column already exists, ignore error
-  if (!err.message.includes('duplicate column name')) {
-    console.error('Migration error:', err.message);
-  }
-}
-
-// Add geolocation columns to ip_access table
-try {
-  db.exec(`
-    ALTER TABLE ip_access ADD COLUMN country TEXT;
-    ALTER TABLE ip_access ADD COLUMN region TEXT;
-    ALTER TABLE ip_access ADD COLUMN city TEXT;
-    ALTER TABLE ip_access ADD COLUMN latitude REAL;
-    ALTER TABLE ip_access ADD COLUMN longitude REAL;
-  `);
-  console.log('✅ Migration: Added geolocation columns to ip_access table');
-} catch (err) {
-  if (!err.message.includes('duplicate column name')) {
-    console.error('Geolocation migration error:', err.message);
-  }
-}
-
+// Create all tables first
 db.exec(`
 
   CREATE TABLE IF NOT EXISTS ip_access (
@@ -79,6 +53,11 @@ db.exec(`
     ip_address TEXT NOT NULL,
     accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     user_agent TEXT,
+    country TEXT,
+    region TEXT,
+    city TEXT,
+    latitude REAL,
+    longitude REAL,
     FOREIGN KEY (document_id) REFERENCES documents(document_id),
     UNIQUE(document_id, ip_address)
   );
@@ -122,6 +101,18 @@ db.exec(`
     FOREIGN KEY (document_id) REFERENCES documents(document_id)
   );
 `);
+
+// Migrations for existing databases
+// Add template_id column if it doesn't exist
+try {
+  db.exec('ALTER TABLE documents ADD COLUMN template_id INTEGER');
+  console.log('✅ Migration: Added template_id column to documents table');
+} catch (err) {
+  // Column already exists, ignore error
+  if (!err.message.includes('duplicate column name')) {
+    console.error('Migration error:', err.message);
+  }
+}
 
 // Insert default admin if not exists
 const adminExists = db.prepare('SELECT * FROM admin_users WHERE username = ?').get('admin');
